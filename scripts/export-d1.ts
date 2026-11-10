@@ -16,7 +16,6 @@ async function main() {
   const { SCHEMA } = await import("../lib/db/schema");
   mkdirSync("migrations", { recursive: true });
   mkdirSync("db", { recursive: true });
-  writeFileSync("migrations/0001_schema.sql", SCHEMA.trim() + "\n");
 
   const { localBackend } = await import("../lib/db/local");
   const { bootstrap } = await import("../lib/db/bootstrap");

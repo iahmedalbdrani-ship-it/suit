@@ -46,6 +46,13 @@ export function ListingForm({ locale, t, cities, listing }: { locale: Locale; t:
 
       <fieldset className="card card-pad stack">
         <h2 style={{ fontSize: "1.15rem", margin: 0 }}>{h.sectionDetails}</h2>
+        <label className="field" style={{ maxWidth: 240 }}>
+          <span>{h.propertyType}</span>
+          <select className="select" name="property_type" defaultValue={v("property_type") || "apartment"}>
+            <option value="apartment">{t.listing.typeApartment}</option>
+            <option value="studio">{t.listing.typeStudio}</option>
+          </select>
+        </label>
         <div className="grid-4">
           <label className="field"><span>{h.bedrooms}</span><input className="input" type="number" name="bedrooms" min={0} max={20} defaultValue={v("bedrooms") || "1"} /></label>
           <label className="field"><span>{h.beds}</span><input className="input" type="number" name="beds" min={1} max={40} defaultValue={v("beds") || "1"} /></label>

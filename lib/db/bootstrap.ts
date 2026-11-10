@@ -1,6 +1,7 @@
 import "server-only";
 import type { Db } from "./index";
 import { config, DEMO_ACCOUNTS, DEMO_PASSWORD } from "../config";
+import { demoPhotosFor } from "./demo-photos";
 import { CITIES, LISTINGS, REVIEW_POOL, REVIEWERS } from "./seed-data";
 import { hashPassword } from "../password";
 import { addDays, todayInRiyadh } from "../dates";
@@ -51,7 +52,6 @@ async function seedDemo(db: Db) {
     VALUES (?,?,'approved',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,30,?,?,?,?,?,?,1)`);
   const insPhoto = db.prepare("INSERT INTO photos (listing_id, url, sort) VALUES (?,?,?)");
   const insReview = db.prepare("INSERT INTO reviews (listing_id, author_name, rating, comment, lang, created_at) VALUES (?,?,?,?,?,?)");
-  const scenes = ["living", "bedroom", "kitchen", "bath", "view"];
   const today = todayInRiyadh();
   const ids: number[] = [];
 
@@ -69,11 +69,8 @@ async function seedDemo(db: Db) {
     );
     const id = r.lastInsertRowid;
     ids.push(id);
-    const base = l.bedrooms === 0 ? ["living", "kitchen", "bath", "view"] : scenes;
-    // Vary the cover scene so cards don't all look alike.
-    const coverScene = ["living", "view", "bedroom", "living", "view", "kitchen"][idx % 6];
-    const order = [coverScene, ...base.filter((x) => x !== coverScene)].filter((x) => base.includes(x));
-    const stmts = order.map((s, i) => insPhoto.bind(id, `/art/${s}-${(l.palette + i) % 6}.svg`, i));
+    const stmts = demoPhotosFor(idx).map((url, i) => insPhoto.bind(id, url, i));
+    stmts.push(db.prepare("UPDATE listings SET property_type = ? WHERE id = ?").bind(l.bedrooms === 0 ? "studio" : "apartment", id));
 
     const rand = rng(idx * 97 + 13);
     const count = 2 + Math.floor(rand() * 5);

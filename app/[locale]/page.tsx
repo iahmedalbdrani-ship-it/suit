@@ -158,8 +158,8 @@ export default async function Home({ params, searchParams }: Props) {
             <div><h3>{t.home.trust1Title}</h3><p>{t.home.trust1Text}</p></div>
           </article>
           <Link href={L("/become-host")} className="tile" style={{ textDecoration: "none", background: "var(--green)", borderColor: "var(--green)" }}>
-            <div className="ico" style={{ background: "rgba(114,182,162,.18)", color: "var(--mint)" }}><Icon name="home" size={22} /></div>
-            <div><h3 style={{ color: "#fff" }}>{t.home.hostTitle}</h3><p style={{ color: "#b9d2ca" }}>{t.home.hostCta}</p></div>
+            <div className="ico" style={{ background: "rgba(122,167,216,.18)", color: "var(--mint)" }}><Icon name="home" size={22} /></div>
+            <div><h3 style={{ color: "#fff" }}>{t.home.hostTitle}</h3><p style={{ color: "#b4c7e0" }}>{t.home.hostCta}</p></div>
           </Link>
         </div>
       </section>

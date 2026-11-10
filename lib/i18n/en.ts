@@ -11,7 +11,8 @@ const en: Dict = {
   demo: {
     banner: "Demo version: apartments, reviews and payments are for testing only. No money is charged.",
     data: "Demo data",
-    illustration: "Illustration",
+    illustration: "Illustrative photos",
+    photosNote: "Photos shown are temporary illustrations, not verified photos of a real property.",
     legalDraft: "Initial draft — requires legal review before launch.",
   },
   nav: {
@@ -106,6 +107,8 @@ const en: Dict = {
     price: "Nightly price (SAR)",
     min: "Min",
     max: "Max",
+    type: "Property type",
+    typeAny: "All",
     bedrooms: "Bedrooms",
     any: "Any",
     plus: "{n}+",
@@ -129,6 +132,8 @@ const en: Dict = {
     page: "Page {n} of {total}",
   },
   listing: {
+    typeApartment: "Apartment",
+    typeStudio: "Studio",
     guests: "{n} guests",
     bedrooms: "{n} bedrooms",
     bedroom1: "1 bedroom",
@@ -364,6 +369,7 @@ const en: Dict = {
     address: "Exact address (shared after confirmation)",
     lat: "Latitude (optional)",
     lng: "Longitude (optional)",
+    propertyType: "Property type",
     bedrooms: "Bedrooms",
     beds: "Beds",
     bathrooms: "Bathrooms",

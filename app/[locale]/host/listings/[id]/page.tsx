@@ -139,7 +139,7 @@ export default async function EditListing({ params, searchParams }: Props) {
         </div>
         <div className="cal-legend">
           <span><i style={{ background: "var(--green)" }} />{t.host.legendBooked}</span>
-          <span><i style={{ background: "#ece6dc" }} />{t.host.legendBlocked}</span>
+          <span><i style={{ background: "#e6e9ef" }} />{t.host.legendBlocked}</span>
           <span><i style={{ boxShadow: "inset 0 0 0 2px var(--sand)" }} />{t.host.legendPrice}</span>
         </div>
       </section>

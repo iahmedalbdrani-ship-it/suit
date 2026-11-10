@@ -4,7 +4,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { ListingCard, EmptyState } from "@/components/ui";
 import { Icon, Chevron } from "@/components/Icon";
 import { fmt, getDict, resolveLocale, type Dict, type Locale } from "@/lib/i18n";
-import { AMENITIES, getCities, getCity, searchListings, type SearchParams } from "@/lib/data/listings";
+import { AMENITIES, PROPERTY_TYPES, getCities, getCity, searchListings, type SearchParams } from "@/lib/data/listings";
 import { todayInRiyadh } from "@/lib/dates";
 import { pageMeta } from "@/lib/seo";
 
@@ -34,6 +34,17 @@ function Filters({ sp, t, locale, idp }: { sp: SP; t: Dict; locale: Locale; idp:
         <div className="grid-2">
           <label className="field"><span className="sr-only">{t.results.min}</span><input className="input" type="number" min={0} step={10} name="minPrice" placeholder={t.results.min} defaultValue={one(sp.minPrice)} inputMode="numeric" /></label>
           <label className="field"><span className="sr-only">{t.results.max}</span><input className="input" type="number" min={0} step={10} name="maxPrice" placeholder={t.results.max} defaultValue={one(sp.maxPrice)} inputMode="numeric" /></label>
+        </div>
+      </fieldset>
+      <fieldset className="filter-group">
+        <legend className="label">{t.results.type}</legend>
+        <div className="chips">
+          {["", ...PROPERTY_TYPES].map((v) => (
+            <label className="chip-input" key={v}>
+              <input type="radio" name="type" value={v} defaultChecked={one(sp.type) === v} />
+              <span>{v === "" ? t.results.typeAny : v === "studio" ? t.listing.typeStudio : t.listing.typeApartment}</span>
+            </label>
+          ))}
         </div>
       </fieldset>
       <fieldset className="filter-group">
@@ -95,6 +106,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const sort = one(sp.sort);
   const query: SearchParams = {
     city: city?.slug,
+    type: (PROPERTY_TYPES as readonly string[]).includes(one(sp.type)) ? (one(sp.type) as SearchParams["type"]) : undefined,
     checkIn: one(sp.checkIn) || undefined,
     checkOut: one(sp.checkOut) || undefined,
     guests: num(one(sp.guests)),

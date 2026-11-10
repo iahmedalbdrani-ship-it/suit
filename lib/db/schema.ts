@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS listings (
   house_rules_ar TEXT NOT NULL DEFAULT '',
   house_rules_en TEXT NOT NULL DEFAULT '',
   featured INTEGER NOT NULL DEFAULT 0,
+  property_type TEXT NOT NULL DEFAULT 'apartment' CHECK (property_type IN ('apartment','studio')),
   is_demo INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))

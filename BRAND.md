@@ -5,9 +5,9 @@ Method borrowed from a brand-guidelines workflow (palette → type → usage →
 ## Colors
 | Token | Hex | Use |
 |---|---|---|
-| Green (primary) | `#173B3B` | Text on light, primary buttons, dark sections |
-| Mint (accent) | `#72B6A2` | Highlights, live indicators, icon tiles, focus accents |
-| Sand (warm) | `#D5A76B` | Warm tiles, price emphasis, secondary CTA touches |
+| Green (primary) | `#223352` | Text on light, primary buttons, dark sections |
+| Mint (accent) | `#7AA7D8` | Highlights, live indicators, icon tiles, focus accents |
+| Sand (warm) | `#E9A86A` | Warm tiles, price emphasis, secondary CTA touches |
 Rules: one accent per view; no pure black/white-on-white text (use green on tinted off-white); body text ≥ 4.5:1 contrast; shadows are tinted green, never grey/neon.
 
 ## Typography

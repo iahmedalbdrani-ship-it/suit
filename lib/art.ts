@@ -6,12 +6,12 @@
 type Pal = { wall: string; wall2: string; floor: string; accent: string; accent2: string; wood: string; sky1: string; sky2: string; fabric: string };
 
 const PALETTES: Pal[] = [
-  { wall: "#efe6d8", wall2: "#e5d8c4", floor: "#c9a77c", accent: "#173B3B", accent2: "#72B6A2", wood: "#a9783b", sky1: "#bfe1d6", sky2: "#f4ead9", fabric: "#2f6764" },
-  { wall: "#e3efe9", wall2: "#d3e6dd", floor: "#d8c1a0", accent: "#22504f", accent2: "#D5A76B", wood: "#b88a52", sky1: "#9fd0c8", sky2: "#eaf5f1", fabric: "#72B6A2" },
-  { wall: "#f3ebe0", wall2: "#ead9c2", floor: "#b99268", accent: "#173B3B", accent2: "#c97f5a", wood: "#8e6236", sky1: "#f2cfa4", sky2: "#fbefe0", fabric: "#D5A76B" },
-  { wall: "#e9ece6", wall2: "#dcdfd6", floor: "#cbb28f", accent: "#2f6764", accent2: "#D5A76B", wood: "#9b7046", sky1: "#c3dcea", sky2: "#eef4f6", fabric: "#173B3B" },
-  { wall: "#f1e4d2", wall2: "#e6d2b8", floor: "#a77f55", accent: "#22504f", accent2: "#72B6A2", wood: "#7d5630", sky1: "#d7e7d9", sky2: "#f6efe3", fabric: "#c98f5e" },
-  { wall: "#e6efec", wall2: "#d4e3de", floor: "#d2b48e", accent: "#173B3B", accent2: "#e2b97f", wood: "#a37547", sky1: "#f1d7b6", sky2: "#e8f2ee", fabric: "#2f6764" },
+  { wall: "#e9edf3", wall2: "#dde3ee", floor: "#c7a27c", accent: "#223352", accent2: "#7AA7D8", wood: "#b56f2e", sky1: "#c5d9f0", sky2: "#f6ede2", fabric: "#3b5a8a" },
+  { wall: "#e4ecf6", wall2: "#d2e0f1", floor: "#d2bd9f", accent: "#2d4670", accent2: "#E9A86A", wood: "#b88a52", sky1: "#a7c6e6", sky2: "#edf3fa", fabric: "#7AA7D8" },
+  { wall: "#f2ece4", wall2: "#e8dac6", floor: "#b58f66", accent: "#223352", accent2: "#d78a55", wood: "#8b6035", sky1: "#f4d3ad", sky2: "#fcf1e3", fabric: "#E9A86A" },
+  { wall: "#e8ebf1", wall2: "#d9dde6", floor: "#c8b190", accent: "#3b5a8a", accent2: "#E9A86A", wood: "#98704a", sky1: "#c3d6ec", sky2: "#eef2f8", fabric: "#223352" },
+  { wall: "#f1e5d4", wall2: "#e6d3ba", floor: "#a47c54", accent: "#2d4670", accent2: "#7AA7D8", wood: "#7a5430", sky1: "#d3e2f2", sky2: "#f7f0e6", fabric: "#cf905a" },
+  { wall: "#e5ecf5", wall2: "#d3e0f0", floor: "#cfb28d", accent: "#223352", accent2: "#ecb77c", wood: "#a07346", sky1: "#f3d9bb", sky2: "#e7eff8", fabric: "#3b5a8a" },
 ];
 
 const W = 800, H = 600;
@@ -85,7 +85,7 @@ function bath(p: Pal) {
   <circle cx="400" cy="200" r="110" fill="#fff"/><circle cx="400" cy="200" r="96" fill="${p.sky1}" opacity=".7"/><path d="M340 170 q60 -40 120 10" stroke="#fff" stroke-width="10" fill="none" opacity=".6"/>
   <rect x="230" y="330" width="340" height="30" rx="6" fill="${p.wood}"/><ellipse cx="400" cy="332" rx="80" ry="14" fill="#fff"/>
   <rect x="250" y="360" width="300" height="110" rx="8" fill="${p.accent}"/><line x1="400" y1="370" x2="400" y2="460" stroke="${p.accent2}" stroke-width="3"/>
-  <rect x="396" y="300" width="8" height="32" fill="#b9c2c0"/><rect x="396" y="300" width="28" height="8" rx="4" fill="#b9c2c0"/>
+  <rect x="396" y="300" width="8" height="32" fill="#b7bfcd"/><rect x="396" y="300" width="28" height="8" rx="4" fill="#b7bfcd"/>
   <rect x="640" y="230" width="10" height="200" fill="${p.wood}"/><rect x="610" y="250" width="70" height="140" rx="10" fill="${p.accent2}"/>
   ${plant(140, 470, 0.9, p)}`;
 }
@@ -103,23 +103,23 @@ function view(p: Pal, v: number) {
 
 function city(slug: string) {
   const p = PALETTES[0];
-  const bg = `<defs><linearGradient id="cs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1d7b6"/><stop offset=".6" stop-color="#bfe1d6"/><stop offset="1" stop-color="#72B6A2"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#cs)"/><circle cx="560" cy="160" r="70" fill="#fff" opacity=".55"/>`;
+  const bg = `<defs><linearGradient id="cs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3d9bb"/><stop offset=".6" stop-color="#c5d9f0"/><stop offset="1" stop-color="#7AA7D8"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#cs)"/><circle cx="560" cy="160" r="70" fill="#fff" opacity=".55"/>`;
   const ground = `<rect y="470" width="${W}" height="130" fill="${p.accent}"/>`;
-  const palms = (x: number, s = 1) => `<g transform="translate(${x} 470) scale(${s})"><path d="M0 0 q6 -90 -4 -170" stroke="#22504f" stroke-width="10" fill="none"/>${[-60, -25, 15, 50].map((a) => `<ellipse cx="0" cy="-170" rx="62" ry="13" fill="#22504f" transform="rotate(${a} -4 -170) translate(40 0)"/>`).join("")}</g>`;
+  const palms = (x: number, s = 1) => `<g transform="translate(${x} 470) scale(${s})"><path d="M0 0 q6 -90 -4 -170" stroke="#2d4670" stroke-width="10" fill="none"/>${[-60, -25, 15, 50].map((a) => `<ellipse cx="0" cy="-170" rx="62" ry="13" fill="#2d4670" transform="rotate(${a} -4 -170) translate(40 0)"/>`).join("")}</g>`;
   const arches = (x: number, n: number) => Array.from({ length: n }, (_, i) => `<path d="M${x + i * 70} 470 v-90 a30 30 0 0 1 60 0 v90z" fill="#fff" opacity=".85"/>`).join("") + `<rect x="${x - 10}" y="360" width="${n * 70 + 10}" height="20" fill="#fff" opacity=".85"/>`;
-  const towers = [80, 160, 250, 330, 420, 520, 610, 690].map((x, i) => `<rect x="${x}" y="${470 - (120 + ((i * 53) % 190))}" width="${50 + (i % 3) * 14}" height="${400}" rx="4" fill="#173B3B" opacity="${0.55 + (i % 3) * 0.15}"/>`).join("");
-  const sea = `<rect y="400" width="${W}" height="200" fill="#2f6764"/><path d="M0 430 q100 -16 200 0 t200 0 t200 0 t200 0" stroke="#c9e6dc" stroke-width="4" fill="none"/><path d="M0 470 q100 -16 200 0 t200 0 t200 0 t200 0" stroke="#c9e6dc" stroke-width="3" fill="none" opacity=".6"/>`;
-  const hills = `<path d="M0 420 Q150 260 300 380 T600 330 T800 360 V600 H0Z" fill="#22504f"/><path d="M0 480 Q200 380 420 460 T800 440 V600 H0Z" fill="#173B3B"/>`;
-  const rocks = `<path d="M60 470 q10 -170 90 -190 q70 -10 90 80 q20 -90 90 -60 q40 40 30 170z" fill="#c97f5a"/><path d="M460 470 q20 -220 120 -230 q90 10 110 130 q10 60 -10 100z" fill="#a9783b"/><rect y="470" width="${W}" height="130" fill="#D5A76B"/>`;
+  const towers = [80, 160, 250, 330, 420, 520, 610, 690].map((x, i) => `<rect x="${x}" y="${470 - (120 + ((i * 53) % 190))}" width="${50 + (i % 3) * 14}" height="${400}" rx="4" fill="#223352" opacity="${0.55 + (i % 3) * 0.15}"/>`).join("");
+  const sea = `<rect y="400" width="${W}" height="200" fill="#3b5a8a"/><path d="M0 430 q100 -16 200 0 t200 0 t200 0 t200 0" stroke="#cfe0f2" stroke-width="4" fill="none"/><path d="M0 470 q100 -16 200 0 t200 0 t200 0 t200 0" stroke="#cfe0f2" stroke-width="3" fill="none" opacity=".6"/>`;
+  const hills = `<path d="M0 420 Q150 260 300 380 T600 330 T800 360 V600 H0Z" fill="#2d4670"/><path d="M0 480 Q200 380 420 460 T800 440 V600 H0Z" fill="#223352"/>`;
+  const rocks = `<path d="M60 470 q10 -170 90 -190 q70 -10 90 80 q20 -90 90 -60 q40 40 30 170z" fill="#d78a55"/><path d="M460 470 q20 -220 120 -230 q90 10 110 130 q10 60 -10 100z" fill="#b56f2e"/><rect y="470" width="${W}" height="130" fill="#E9A86A"/>`;
   const art: Record<string, string> = {
-    riyadh: bg + towers + `<path d="M380 470 V170 q30 -60 60 0 V470z" fill="#0f2828"/><ellipse cx="410" cy="190" rx="28" ry="12" fill="#f1d7b6"/>` + ground,
+    riyadh: bg + towers + `<path d="M380 470 V170 q30 -60 60 0 V470z" fill="#141f33"/><ellipse cx="410" cy="190" rx="28" ry="12" fill="#f3d9bb"/>` + ground,
     jeddah: bg + sea + palms(120) + palms(680, 0.85) + `<rect x="400" y="130" width="10" height="290" fill="#fff"/><circle cx="405" cy="130" r="14" fill="#fff"/>`,
     makkah: bg + hills + arches(250, 5) + palms(120, 0.9),
     madinah: bg + ground + arches(180, 7) + palms(100, 0.9) + palms(720, 0.8),
     dammam: bg + towers + sea,
-    khobar: bg + sea + palms(150) + `<rect x="520" y="200" width="60" height="230" fill="#173B3B"/><path d="M500 200 h100 l-50 -60z" fill="#173B3B"/>`,
-    abha: bg + hills + `<g fill="#fff">${[180, 260, 340].map((x, i) => `<rect x="${x}" y="${330 - i * 20}" width="60" height="${140 + i * 20}"/>`).join("")}</g><g fill="#c97f5a">${[180, 260, 340].map((x, i) => `<rect x="${x}" y="${350 - i * 20}" width="60" height="8"/>`).join("")}</g>`,
-    taif: bg + hills + `<g fill="#c97f5a">${[0, 1, 2, 3, 4, 5].map((i) => `<circle cx="${140 + i * 110}" cy="${500 + (i % 2) * 20}" r="22"/>`).join("")}</g>`,
+    khobar: bg + sea + palms(150) + `<rect x="520" y="200" width="60" height="230" fill="#223352"/><path d="M500 200 h100 l-50 -60z" fill="#223352"/>`,
+    abha: bg + hills + `<g fill="#fff">${[180, 260, 340].map((x, i) => `<rect x="${x}" y="${330 - i * 20}" width="60" height="${140 + i * 20}"/>`).join("")}</g><g fill="#d78a55">${[180, 260, 340].map((x, i) => `<rect x="${x}" y="${350 - i * 20}" width="60" height="8"/>`).join("")}</g>`,
+    taif: bg + hills + `<g fill="#d78a55">${[0, 1, 2, 3, 4, 5].map((i) => `<circle cx="${140 + i * 110}" cy="${500 + (i % 2) * 20}" r="22"/>`).join("")}</g>`,
     alula: bg + rocks + palms(370, 0.8),
   };
   return art[slug] ?? bg + ground;

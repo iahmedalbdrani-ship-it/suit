@@ -52,6 +52,7 @@ export async function saveListingAction(fd: FormData) {
     description_ar: s(fd, "description_ar", 4000), description_en: s(fd, "description_en", 4000),
     city_slug: city, district_ar: s(fd, "district_ar", 80), district_en: s(fd, "district_en", 80), address: s(fd, "address", 300),
     lat, lng,
+    property_type: s(fd, "property_type") === "studio" ? "studio" : "apartment",
     bedrooms: clampInt(n(fd, "bedrooms"), 0, 20), beds: clampInt(n(fd, "beds", 1), 1, 40), bathrooms: clampInt(n(fd, "bathrooms", 1), 1, 20),
     max_guests: clampInt(n(fd, "max_guests", 2), 1, 30), area_sqm: clampInt(n(fd, "area_sqm"), 0, 5000) || null,
     amenities: JSON.stringify(amenities),
@@ -105,7 +106,7 @@ export async function uploadPhotosAction(fd: FormData) {
     const ext = sniff(buf);
     if (!ext) redirect(`/${locale}/host/listings/${id}?error=upload_invalid#photos`);
     const name = `${[...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("")}.${ext}`;
-    try { await putObject(name, buf, MIME[ext]); } catch { redirect(`/${locale}/host/listings/${id}?error=upload_invalid#photos`); }
+    await putObject(name, buf, MIME[ext]);
     await db().prepare("INSERT INTO photos (listing_id, url, sort) VALUES (?,?,?)").run(id, `/uploads/${name}`, sort++);
   }
   redirect(`/${locale}/host/listings/${id}?ok=saved#photos`);

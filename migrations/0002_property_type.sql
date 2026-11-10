@@ -1,0 +1,5 @@
+-- Adds the property type (apartment | studio) and swaps the demo photo set for clearly-labelled illustrative photos.
+ALTER TABLE listings ADD COLUMN property_type TEXT NOT NULL DEFAULT 'apartment' CHECK (property_type IN ('apartment','studio'));
+UPDATE listings SET property_type = 'studio' WHERE bedrooms = 0;
+DELETE FROM photos WHERE listing_id IN (SELECT id FROM listings WHERE is_demo = 1);
+INSERT INTO photos (listing_id, url, sort) SELECT l.id, CASE ((l.id + s.n) % 4) WHEN 0 THEN 'https://images.pexels.com/photos/10471491/pexels-photo-10471491.jpeg?auto=compress&dpr=1&h=750&w=1260' WHEN 1 THEN 'https://images.pexels.com/photos/7040696/pexels-photo-7040696.jpeg?auto=compress&dpr=1&h=750&w=1260' WHEN 2 THEN 'https://images.pexels.com/photos/7195595/pexels-photo-7195595.jpeg?auto=compress&dpr=1&h=750&w=1260' ELSE 'https://images.pexels.com/photos/11296222/pexels-photo-11296222.jpeg?auto=compress&dpr=1&h=750&w=1260' END, s.n FROM listings l, (SELECT 0 AS n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3) s WHERE l.is_demo = 1;

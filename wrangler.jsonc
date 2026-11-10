@@ -11,7 +11,6 @@
     // After `wrangler d1 create suitly`, paste the returned database_id here.
     { "binding": "DB", "database_name": "suitly", "database_id": "3418cfdc-af1b-43f2-86ef-bb2116acefd6", "migrations_dir": "migrations" }
   ],
-
   "r2_buckets": [
     { "binding": "UPLOADS", "bucket_name": "suitly-uploads" }
   ],
@@ -21,8 +20,8 @@
     "SITE_URL": "https://suitly.online",
     "DEMO_MODE": "true",
     "PAYMENT_PROVIDER": "demo",
-    "SERVICE_FEE_RATE": "0.05",
-    "VAT_RATE": "0.15",
+    "SERVICE_FEE_RATE": "0",
+    "VAT_RATE": "0",
     "BOOKING_HOLD_MINUTES": "15",
     "CONTACT_EMAIL": "support@suitly.online",
     "CONTACT_WHATSAPP": ""

@@ -57,7 +57,7 @@ export default async function ApartmentPage({ params, searchParams }: Props) {
   const lat = listing.lat ?? city.lat, lng = listing.lng ?? city.lng;
   // Approximate area only (± ~1 km) — exact address is shared after confirmation.
   const bbox = [lng - 0.03, lat - 0.02, lng + 0.03, lat + 0.02].map((v) => v.toFixed(4)).join(",");
-  const rooms = listing.bedrooms === 0 ? (locale === "ar" ? "استوديو" : "Studio") : listing.bedrooms === 1 ? t.listing.bedroom1 : fmt(t.listing.bedrooms, { n: listing.bedrooms });
+  const rooms = listing.property_type === "studio" || listing.bedrooms === 0 ? (locale === "ar" ? "استوديو" : "Studio") : listing.bedrooms === 1 ? t.listing.bedroom1 : fmt(t.listing.bedrooms, { n: listing.bedrooms });
   const policyText = t.policies[`${listing.cancellation_policy}Text` as "flexibleText"];
   const policyName = t.policies[listing.cancellation_policy];
 
@@ -103,7 +103,7 @@ export default async function ApartmentPage({ params, searchParams }: Props) {
               <img src={p.url} alt={`${title} — ${fmt(t.listing.photo, { n: i + 1, total: photos.length })}`} width={800} height={600} loading={i === 0 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : undefined} />
             </div>
           ))}
-          {listing.is_demo && photos.some((p) => p.url.startsWith("/art/")) ? <span className="badge badge-dark">{t.demo.illustration}</span> : null}
+          {listing.is_demo ? <span className="photo-note">{t.demo.photosNote}</span> : null}
         </section>
 
         <div className="detail-layout">

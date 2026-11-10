@@ -4,12 +4,12 @@ import Link from "next/link";
 export function LogoMark({ size = 34, light = false }: { size?: number; light?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 128 128" aria-hidden="true" focusable="false">
-      <path d="M64 119s41-43 41-72a41 41 0 1 0-82 0c0 29 41 72 41 72Z" fill={light ? "#72B6A2" : "#173B3B"} />
-      <rect x="43" y="30" width="42" height="43" rx="8" fill={light ? "#173B3B" : "#F6F1E8"} />
-      <rect x="51" y="38" width="11" height="11" rx="2.5" fill="#72B6A2" />
-      <rect x="66" y="38" width="11" height="11" rx="2.5" fill="#72B6A2" />
-      <rect x="51" y="54" width="11" height="11" rx="2.5" fill="#72B6A2" />
-      <rect x="66" y="54" width="11" height="11" rx="2.5" fill="#D5A76B" />
+      <path d="M64 119s41-43 41-72a41 41 0 1 0-82 0c0 29 41 72 41 72Z" fill={light ? "#7AA7D8" : "#223352"} />
+      <rect x="43" y="30" width="42" height="43" rx="8" fill={light ? "#223352" : "#F3F5F8"} />
+      <rect x="51" y="38" width="11" height="11" rx="2.5" fill="#7AA7D8" />
+      <rect x="66" y="38" width="11" height="11" rx="2.5" fill="#7AA7D8" />
+      <rect x="51" y="54" width="11" height="11" rx="2.5" fill="#7AA7D8" />
+      <rect x="66" y="54" width="11" height="11" rx="2.5" fill="#E9A86A" />
     </svg>
   );
 }

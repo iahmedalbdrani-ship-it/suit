@@ -10,12 +10,15 @@ export const AMENITIES = [
 ] as const;
 export type Amenity = (typeof AMENITIES)[number];
 
+export const PROPERTY_TYPES = ["apartment", "studio"] as const;
+export type PropertyType = (typeof PROPERTY_TYPES)[number];
+
 export type ListingStatus = "pending" | "approved" | "rejected" | "suspended";
 
 export type Listing = {
   id: number; slug: string; host_id: number; status: ListingStatus; review_note: string | null;
   title_ar: string; title_en: string; description_ar: string; description_en: string;
-  city_slug: string; district_ar: string; district_en: string; address: string; lat: number | null; lng: number | null;
+  property_type: PropertyType; city_slug: string; district_ar: string; district_en: string; address: string; lat: number | null; lng: number | null;
   bedrooms: number; beds: number; bathrooms: number; max_guests: number; area_sqm: number | null; amenities: string;
   base_price: number; weekend_price: number | null; cleaning_fee: number; min_nights: number; max_nights: number;
   weekly_discount: number; monthly_discount: number; cancellation_policy: "flexible" | "moderate" | "strict";
@@ -24,7 +27,7 @@ export type Listing = {
 };
 
 export type ListingCard = Pick<Listing,
-  "id" | "slug" | "title_ar" | "title_en" | "city_slug" | "district_ar" | "district_en" | "bedrooms" | "beds" | "max_guests" |
+  "id" | "slug" | "property_type" | "title_ar" | "title_en" | "city_slug" | "district_ar" | "district_en" | "bedrooms" | "beds" | "max_guests" |
   "base_price" | "featured" | "is_demo" | "min_nights" | "created_at" | "status"> & {
   city_ar: string; city_en: string; cover: string | null; rating: number | null; reviews: number; quoteTotal?: number; quoteNights?: number;
 };
@@ -34,7 +37,7 @@ export type City = { slug: string; name_ar: string; name_en: string; region_ar: 
 const ACTIVE_BOOKING = `(b.status = 'confirmed' OR (b.status = 'pending_payment' AND b.hold_expires_at > ?))`;
 
 const CARD_SELECT = `
-  SELECT l.id, l.slug, l.title_ar, l.title_en, l.city_slug, l.district_ar, l.district_en, l.bedrooms, l.beds, l.max_guests,
+  SELECT l.id, l.slug, l.property_type, l.title_ar, l.title_en, l.city_slug, l.district_ar, l.district_en, l.bedrooms, l.beds, l.max_guests,
          l.base_price, l.featured, l.is_demo, l.min_nights, l.created_at, l.status,
          c.name_ar AS city_ar, c.name_en AS city_en,
          (SELECT url FROM photos p WHERE p.listing_id = l.id ORDER BY p.sort, p.id LIMIT 1) AS cover,
@@ -58,7 +61,7 @@ export async function getFeatured(limit = 8): Promise<ListingCard[]> {
 
 export type SearchParams = {
   city?: string; checkIn?: string; checkOut?: string; guests?: number;
-  minPrice?: number; maxPrice?: number; bedrooms?: number; amenities?: string[]; minRating?: number;
+  type?: PropertyType; minPrice?: number; maxPrice?: number; bedrooms?: number; amenities?: string[]; minRating?: number;
   sort?: "recommended" | "price_asc" | "price_desc" | "rating"; page?: number;
 };
 
@@ -69,6 +72,7 @@ export async function searchListings(p: SearchParams): Promise<{ items: ListingC
   const args: (string | number)[] = [];
   const now = new Date().toISOString();
   if (p.city) { where.push("l.city_slug = ?"); args.push(p.city); }
+  if (p.type && (PROPERTY_TYPES as readonly string[]).includes(p.type)) { where.push("l.property_type = ?"); args.push(p.type); }
   if (p.guests && p.guests > 0) { where.push("l.max_guests >= ?"); args.push(p.guests); }
   if (p.minPrice) { where.push("l.base_price >= ?"); args.push(Math.round(p.minPrice * 100)); }
   if (p.maxPrice) { where.push("l.base_price <= ?"); args.push(Math.round(p.maxPrice * 100)); }

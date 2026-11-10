@@ -14,6 +14,12 @@ export function localBackend(path: string): Backend {
   const conn = new DatabaseSync(file);
   conn.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 8000; PRAGMA synchronous = NORMAL;");
   conn.exec(SCHEMA);
+  // Older local databases pre-date property_type: add it in place.
+  const cols = conn.prepare("PRAGMA table_info(listings)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "property_type")) {
+    conn.exec("ALTER TABLE listings ADD COLUMN property_type TEXT NOT NULL DEFAULT 'apartment' CHECK (property_type IN ('apartment','studio'))");
+    conn.exec("UPDATE listings SET property_type = 'studio' WHERE bedrooms = 0");
+  }
   const runOne = (sql: P, args: unknown[]): RunResult => {
     const r = conn.prepare(sql).run(...norm(args));
     return { changes: Number(r.changes), lastInsertRowid: Number(r.lastInsertRowid) };

@@ -154,7 +154,7 @@ export function AvailabilityCalendar({ locale, labels }: { locale: Locale; label
       <div className="spread">
         <div className="cal-legend">
           <span><i style={{ background: "var(--green)" }} />{labels.selected}</span>
-          <span><i style={{ background: "#e9ece9" }} />{labels.unavailable}</span>
+          <span><i style={{ background: "#e9ecf1" }} />{labels.unavailable}</span>
         </div>
         {(checkIn || checkOut) && <button type="button" className="link-btn small" onClick={() => { setCheckIn(""); setCheckOut(""); }}>{labels.clearDates}</button>}
       </div>
