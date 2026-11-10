@@ -1,0 +1,11 @@
+services:
+  suitly:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env.production
+    volumes:
+      - suitly-data:/data   # database + uploaded photos (back this up)
+volumes:
+  suitly-data:
