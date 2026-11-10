@@ -22,6 +22,8 @@ async function r2(): Promise<R2Like | undefined> {
 export async function putObject(name: string, bytes: Uint8Array, contentType: string): Promise<void> {
   const bucket = await r2();
   if (bucket) { await bucket.put(name, bytes, { httpMetadata: { contentType } }); return; }
+  // On Workers without an R2 binding there is no filesystem: refuse cleanly.
+  if (typeof (globalThis as { WebSocketPair?: unknown }).WebSocketPair !== "undefined") throw new Error("storage_unavailable");
   const { writeFile, mkdir } = await import("node:fs/promises");
   const { join, resolve } = await import("node:path");
   const dir = resolve(config.uploadsDir);

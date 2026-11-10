@@ -105,7 +105,7 @@ export async function uploadPhotosAction(fd: FormData) {
     const ext = sniff(buf);
     if (!ext) redirect(`/${locale}/host/listings/${id}?error=upload_invalid#photos`);
     const name = `${[...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("")}.${ext}`;
-    await putObject(name, buf, MIME[ext]);
+    try { await putObject(name, buf, MIME[ext]); } catch { redirect(`/${locale}/host/listings/${id}?error=upload_invalid#photos`); }
     await db().prepare("INSERT INTO photos (listing_id, url, sort) VALUES (?,?,?)").run(id, `/uploads/${name}`, sort++);
   }
   redirect(`/${locale}/host/listings/${id}?ok=saved#photos`);

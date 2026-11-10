@@ -9,10 +9,7 @@
 
   "d1_databases": [
     // After `wrangler d1 create suitly`, paste the returned database_id here.
-    { "binding": "DB", "database_name": "suitly", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
-  ],
-  "r2_buckets": [
-    { "binding": "UPLOADS", "bucket_name": "suitly-uploads" }
+    { "binding": "DB", "database_name": "suitly", "database_id": "3418cfdc-af1b-43f2-86ef-bb2116acefd6", "migrations_dir": "migrations" }
   ],
 
   // Non-secret settings. Secrets (MOYASAR_SECRET_KEY, ADMIN_PASSWORD) go in with `wrangler secret put`.
