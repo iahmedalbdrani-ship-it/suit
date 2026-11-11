@@ -19,7 +19,7 @@ type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: 
 async function load(slug: string) {
   const listing = await getListingBySlug(slug);
   if (!listing) return null;
-  if (listing.status !== "approved") {
+  if (listing.status !== "approved" || listing.paused) {
     const user = await getCurrentUser();
     if (!user || (user.id !== listing.host_id && user.role !== "admin")) return null;
   }
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: l, slug } = await params;
   const locale = resolveLocale(l);
   const listing = await getListingBySlug(slug);
-  if (!listing || listing.status !== "approved") return { title: "404", robots: { index: false } };
+  if (!listing || listing.status !== "approved" || listing.paused) return { title: "404", robots: { index: false } };
   const title = locale === "ar" ? listing.title_ar : listing.title_en;
   const desc = (locale === "ar" ? listing.description_ar : listing.description_en).slice(0, 160);
   return pageMeta(locale, `/apartments/${slug}`, title, desc);
@@ -57,7 +57,7 @@ export default async function ApartmentPage({ params, searchParams }: Props) {
   const lat = listing.lat ?? city.lat, lng = listing.lng ?? city.lng;
   // Approximate area only (± ~1 km) — exact address is shared after confirmation.
   const bbox = [lng - 0.03, lat - 0.02, lng + 0.03, lat + 0.02].map((v) => v.toFixed(4)).join(",");
-  const rooms = listing.property_type === "studio" || listing.bedrooms === 0 ? (locale === "ar" ? "استوديو" : "Studio") : listing.bedrooms === 1 ? t.listing.bedroom1 : fmt(t.listing.bedrooms, { n: listing.bedrooms });
+  const rooms = listing.unit_type === "studio" || listing.bedrooms === 0 ? (locale === "ar" ? "استوديو" : "Studio") : listing.bedrooms === 1 ? t.listing.bedroom1 : fmt(t.listing.bedrooms, { n: listing.bedrooms });
   const policyText = t.policies[`${listing.cancellation_policy}Text` as "flexibleText"];
   const policyName = t.policies[listing.cancellation_policy];
 
@@ -93,7 +93,7 @@ export default async function ApartmentPage({ params, searchParams }: Props) {
           <div className="row">
             <Rating value={reviews.avg} count={reviews.count} t={t} />
             <span className="muted"><Icon name="pin" size={15} className="inline" /> {district}{locale === "ar" ? "، " : ", "}{cityName}</span>
-            {listing.is_demo ? <span className="badge badge-sand">{t.demo.data}</span> : null}
+            {listing.is_demo && config.demoMode ? <span className="badge badge-sand">{t.demo.data}</span> : null}
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export default async function ApartmentPage({ params, searchParams }: Props) {
               <img src={p.url} alt={`${title} — ${fmt(t.listing.photo, { n: i + 1, total: photos.length })}`} width={800} height={600} loading={i === 0 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : undefined} />
             </div>
           ))}
-          {listing.is_demo ? <span className="photo-note">{t.demo.photosNote}</span> : null}
+          {listing.is_demo && config.demoMode ? <span className="photo-note">{t.demo.photosNote}</span> : null}
         </section>
 
         <div className="detail-layout">

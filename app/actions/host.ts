@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser, type User } from "@/lib/auth";
 import { db, nowIso } from "@/lib/db";
 import { putObject, deleteObject } from "@/lib/storage";
-import { AMENITIES, getCity, getListingById, uniqueSlug, type Listing } from "@/lib/data/listings";
+import { AMENITIES, PROPERTY_TYPES, getCity, getListingById, uniqueSlug, type Listing } from "@/lib/data/listings";
 import { cancelBooking } from "@/lib/data/bookings";
 import { refundPayment } from "@/lib/payments";
 import { addDays, diffDays, isIsoDate } from "@/lib/dates";
@@ -52,7 +52,7 @@ export async function saveListingAction(fd: FormData) {
     description_ar: s(fd, "description_ar", 4000), description_en: s(fd, "description_en", 4000),
     city_slug: city, district_ar: s(fd, "district_ar", 80), district_en: s(fd, "district_en", 80), address: s(fd, "address", 300),
     lat, lng,
-    property_type: s(fd, "property_type") === "studio" ? "studio" : "apartment",
+    unit_type: (PROPERTY_TYPES as readonly string[]).includes(s(fd, "unit_type")) ? s(fd, "unit_type") : "apartment",
     bedrooms: clampInt(n(fd, "bedrooms"), 0, 20), beds: clampInt(n(fd, "beds", 1), 1, 40), bathrooms: clampInt(n(fd, "bathrooms", 1), 1, 20),
     max_guests: clampInt(n(fd, "max_guests", 2), 1, 30), area_sqm: clampInt(n(fd, "area_sqm"), 0, 5000) || null,
     amenities: JSON.stringify(amenities),
@@ -77,10 +77,14 @@ export async function saveListingAction(fd: FormData) {
   const slug = await uniqueSlug(`${city}-${title_en}`);
   const r = await db().prepare(`INSERT INTO listings (slug, host_id, status, is_demo, ${cols.join(", ")}) VALUES (?, ?, 'pending', 0, ${cols.map(() => "?").join(", ")})`)
     .run(slug, user.id, ...vals);
+  const photoRes = photoFiles(fd).length ? await savePhotos(Number(r.lastInsertRowid), photoFiles(fd)) : "ok";
+  if (photoRes !== "ok") redirect(`/${locale}/host/listings/${r.lastInsertRowid}?error=${photoRes}#photos`);
   redirect(`/${locale}/host/listings/${r.lastInsertRowid}?ok=created#photos`);
 }
 
 const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_PHOTOS = 20;
+const MIME = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" } as const;
 function sniff(buf: Uint8Array): "jpg" | "png" | "webp" | null {
   if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "jpg";
   const png = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
@@ -90,25 +94,42 @@ function sniff(buf: Uint8Array): "jpg" | "png" | "webp" | null {
   return null;
 }
 
-const MIME = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" } as const;
+/**
+ * Validates every file first (declared type, real content type by magic bytes, size) and only then stores them,
+ * so one bad file never leaves a half-uploaded set. Order of `files` = order of display.
+ */
+async function savePhotos(listingId: number, files: File[]): Promise<"ok" | "upload_invalid" | "upload_too_large" | "upload_limit"> {
+  if (!files.length) return "upload_invalid";
+  const existing = (await db().prepare("SELECT COUNT(*) AS n, MAX(sort) AS m FROM photos WHERE listing_id = ?").get<{ n: number; m: number | null }>(listingId))!;
+  if (existing.n + files.length > MAX_PHOTOS) return "upload_limit";
+  const checked: { buf: Uint8Array; ext: "jpg" | "png" | "webp" }[] = [];
+  for (const f of files) {
+    if (f.size > MAX_BYTES) return "upload_too_large";
+    if (f.type && !Object.values(MIME).includes(f.type as (typeof MIME)[keyof typeof MIME])) return "upload_invalid";
+    const buf = new Uint8Array(await f.arrayBuffer());
+    if (buf.length > MAX_BYTES) return "upload_too_large";
+    const ext = sniff(buf);
+    if (!ext) return "upload_invalid";
+    checked.push({ buf, ext });
+  }
+  let sort = (existing.m ?? -1) + 1;
+  for (const { buf, ext } of checked) {
+    const name = `${[...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("")}.${ext}`;
+    await putObject(name, buf, MIME[ext]);
+    await db().prepare("INSERT INTO photos (listing_id, url, sort) VALUES (?,?,?)").run(listingId, `/uploads/${name}`, sort++);
+  }
+  return "ok";
+}
+
+const photoFiles = (fd: FormData) => fd.getAll("photos").filter((f): f is File => typeof f === "object" && "arrayBuffer" in f && f.size > 0);
 
 export async function uploadPhotosAction(fd: FormData) {
   const locale = loc(fd);
   const user = await requireHost(locale);
   const id = Math.trunc(n(fd, "id"));
   await ownListing(user, id, locale);
-  const files = fd.getAll("photos").filter((f): f is File => typeof f === "object" && "arrayBuffer" in f && f.size > 0).slice(0, 12);
-  if (!files.length) redirect(`/${locale}/host/listings/${id}?error=upload_invalid#photos`);
-  let sort = ((await db().prepare("SELECT MAX(sort) AS m FROM photos WHERE listing_id = ?").get<{ m: number | null }>(id))!.m ?? -1) + 1;
-  for (const f of files) {
-    if (f.size > MAX_BYTES) redirect(`/${locale}/host/listings/${id}?error=upload_invalid#photos`);
-    const buf = new Uint8Array(await f.arrayBuffer());
-    const ext = sniff(buf);
-    if (!ext) redirect(`/${locale}/host/listings/${id}?error=upload_invalid#photos`);
-    const name = `${[...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("")}.${ext}`;
-    await putObject(name, buf, MIME[ext]);
-    await db().prepare("INSERT INTO photos (listing_id, url, sort) VALUES (?,?,?)").run(id, `/uploads/${name}`, sort++);
-  }
+  const res = await savePhotos(id, photoFiles(fd));
+  if (res !== "ok") redirect(`/${locale}/host/listings/${id}?error=${res}#photos`);
   redirect(`/${locale}/host/listings/${id}?ok=saved#photos`);
 }
 
@@ -125,13 +146,28 @@ export async function photoAction(fd: FormData) {
     const m = /^\/uploads\/([a-f0-9]{32}\.\w+)$/.exec(photo.url);
     if (m) await deleteObject(m[1]);
   }
-  if (photo && op === "cover") {
-    await db().batch([
-      db().prepare("UPDATE photos SET sort = sort + 1 WHERE listing_id = ?").bind(id),
-      db().prepare("UPDATE photos SET sort = 0 WHERE id = ?").bind(photoId),
-    ]);
+  if (photo && (op === "cover" || op === "left" || op === "right")) {
+    const ids = (await db().prepare("SELECT id FROM photos WHERE listing_id = ? ORDER BY sort, id").all<{ id: number }>(id)).map((r) => r.id);
+    const i = ids.indexOf(photoId);
+    if (op === "cover") { ids.splice(i, 1); ids.unshift(photoId); }
+    else {
+      const j = op === "left" ? i - 1 : i + 1;
+      if (j >= 0 && j < ids.length) [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    await db().batch(ids.map((pid, k) => db().prepare("UPDATE photos SET sort = ? WHERE id = ? AND listing_id = ?").bind(k, pid, id)));
   }
   redirect(`/${locale}/host/listings/${id}?ok=saved#photos`);
+}
+
+/** Pause / unpause a listing: a paused listing disappears from search and cannot be booked; existing bookings are untouched. */
+export async function togglePauseAction(fd: FormData) {
+  const locale = loc(fd);
+  const user = await requireHost(locale);
+  const id = Math.trunc(n(fd, "id"));
+  const listing = await ownListing(user, id, locale);
+  await db().prepare("UPDATE listings SET paused = ?, updated_at = ? WHERE id = ?").run(listing.paused ? 0 : 1, nowIso(), id);
+  revalidatePath(`/${locale}/search`);
+  redirect(s(fd, "back", 12) === "list" ? `/${locale}/host?tab=listings&ok=${listing.paused ? "unpaused" : "paused"}` : `/${locale}/host/listings/${id}?ok=${listing.paused ? "unpaused" : "paused"}`);
 }
 
 export async function calendarAction(fd: FormData) {

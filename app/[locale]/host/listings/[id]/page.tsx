@@ -6,7 +6,9 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getCities, getListingById, getPhotos, unavailableNights } from "@/lib/data/listings";
 import { bookingsForHost } from "@/lib/data/bookings";
-import { calendarAction, photoAction, uploadPhotosAction } from "@/app/actions/host";
+import { calendarAction, photoAction, togglePauseAction, uploadPhotosAction } from "@/app/actions/host";
+import { PhotoUploader } from "@/components/PhotoUploader";
+import { photoLabels } from "@/lib/photo-labels";
 import { ListingForm } from "@/components/ListingForm";
 import { Alert, StatusBadge, errorText } from "@/components/ui";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -39,7 +41,7 @@ export default async function EditListing({ params, searchParams }: Props) {
     .all(listing.id, monthStart(today), horizon) as { date: string; blocked: number; price: number | null }[];
   const dayMap = new Map(days.map((d) => [d.date, d]));
   const bookings = await bookingsForHost(listing.host_id, listing.id);
-  const okMsg = { saved: t.host.saved, created: t.host.created, calendar: t.host.calUpdated }[sp.ok ?? ""];
+  const okMsg = { saved: t.host.saved, created: t.host.created, calendar: t.host.calUpdated, paused: t.host.pausedOk, unpaused: t.host.unpausedOk }[sp.ok ?? ""];
   const title = locale === "ar" ? listing.title_ar : listing.title_en;
   const dows = Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(intlTag(locale), { weekday: "narrow", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 7 + i))));
 
@@ -49,9 +51,18 @@ export default async function EditListing({ params, searchParams }: Props) {
         <Link href={`/${locale}/host?tab=listings`} className="small row" style={{ gap: "0.25rem" }}><Chevron dir="back" rtl={locale === "ar"} size={16} />{t.host.listings}</Link>
         <div className="spread" style={{ marginTop: "0.5rem" }}>
           <h1 style={{ fontSize: "1.7rem", margin: 0 }}>{title}</h1>
-          <div className="row"><StatusBadge status={listing.status} t={t} /><Link className="btn btn-outline btn-sm" href={`/${locale}/apartments/${listing.slug}`}>{t.host.view}</Link></div>
+          <div className="row">
+            <StatusBadge status={listing.status} t={t} />
+            {listing.paused ? <span className="badge badge-paused">{t.host.pausedBadge}</span> : null}
+            <form action={togglePauseAction}>
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={listing.id} />
+              <SubmitButton className="btn btn-outline btn-sm">{listing.paused ? t.host.unpause : t.host.pause}</SubmitButton>
+            </form>
+            <Link className="btn btn-outline btn-sm" href={`/${locale}/apartments/${listing.slug}`}>{t.host.view}</Link>
+          </div>
         </div>
       </div>
+      {listing.paused ? <div style={{ marginBottom: "1rem" }}><Alert kind="warn">{t.host.pausedNote}</Alert></div> : null}
       {listing.status === "pending" && <div style={{ marginBottom: "1rem" }}><Alert kind="info">{t.host.pendingNote}</Alert></div>}
       {listing.review_note && <div style={{ marginBottom: "1rem" }}><Alert kind="warn">{t.host.reviewNote}: {listing.review_note}</Alert></div>}
       {okMsg && <div style={{ marginBottom: "1rem" }}><Alert kind="ok">{okMsg}</Alert></div>}
@@ -72,6 +83,13 @@ export default async function EditListing({ params, searchParams }: Props) {
                       <SubmitButton className="btn btn-ghost btn-sm">{t.host.makeCover}</SubmitButton>
                     </form>
                   )}
+                  {(["left", "right"] as const).map((op) => (op === "left" ? i > 0 : i < photos.length - 1) && (
+                    <form action={photoAction} key={op}>
+                      <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={listing.id} />
+                      <input type="hidden" name="photoId" value={p.id} /><input type="hidden" name="op" value={op} />
+                      <SubmitButton className="btn btn-ghost btn-sm" aria-label={op === "left" ? t.host.moveEarlier : t.host.moveLater}>{op === "left" ? (locale === "ar" ? "→" : "←") : (locale === "ar" ? "←" : "→")}</SubmitButton>
+                    </form>
+                  ))}
                   <form action={photoAction}>
                     <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={listing.id} />
                     <input type="hidden" name="photoId" value={p.id} /><input type="hidden" name="op" value="delete" />
@@ -82,14 +100,10 @@ export default async function EditListing({ params, searchParams }: Props) {
             ))}
           </div>
         ) : <p className="muted">{t.host.noPhotos}</p>}
-        <form action={uploadPhotosAction} className="row" encType="multipart/form-data">
+        <form action={uploadPhotosAction} className="stack" encType="multipart/form-data">
           <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={listing.id} />
-          <label className="field" style={{ flex: 1, minWidth: 220 }}>
-            <span>{t.host.uploadPhotos}</span>
-            <input className="input" type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple required />
-            <span className="hint">{t.host.uploadHint}</span>
-          </label>
-          <SubmitButton className="btn"><Icon name="image" size={18} />{t.host.upload}</SubmitButton>
+          <PhotoUploader labels={photoLabels(t)} existing={photos.length} />
+          <div><SubmitButton className="btn"><Icon name="image" size={18} />{t.host.upload}</SubmitButton></div>
         </form>
       </section>
 

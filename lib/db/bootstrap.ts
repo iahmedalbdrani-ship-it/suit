@@ -70,7 +70,7 @@ async function seedDemo(db: Db) {
     const id = r.lastInsertRowid;
     ids.push(id);
     const stmts = demoPhotosFor(idx).map((url, i) => insPhoto.bind(id, url, i));
-    stmts.push(db.prepare("UPDATE listings SET property_type = ? WHERE id = ?").bind(l.bedrooms === 0 ? "studio" : "apartment", id));
+    stmts.push(db.prepare("UPDATE listings SET unit_type = ? WHERE id = ?").bind(l.bedrooms === 0 ? "studio" : "apartment", id));
 
     const rand = rng(idx * 97 + 13);
     const count = 2 + Math.floor(rand() * 5);

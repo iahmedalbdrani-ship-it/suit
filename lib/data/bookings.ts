@@ -2,7 +2,7 @@ import "server-only";
 import { db, nowIso } from "../db";
 import { config } from "../config";
 import { getListingById, quoteStay, type Listing, type QuoteError } from "./listings";
-import { refundFor, type Quote } from "../pricing";
+import { refundFor, quoteTotal, type Quote } from "../pricing";
 import { todayInRiyadh } from "../dates";
 
 export type BookingStatus = "pending_payment" | "confirmed" | "cancelled" | "expired" | "payment_failed" | "payment_conflict";
@@ -43,6 +43,7 @@ export type CreateBookingInput = {
  * if another active booking or a host-blocked day overlaps, the INSERT inserts zero rows.
  */
 export async function createPendingBooking(input: CreateBookingInput): Promise<{ ok: true; booking: Booking } | { ok: false; error: QuoteError }> {
+  await expireStaleHolds();
   const listing = await getListingById(input.listingId);
   const result = await quoteStay(listing, input.checkIn, input.checkOut, input.guests);
   if (!result.ok) return { ok: false, error: result.error };
@@ -213,4 +214,38 @@ export async function cancelBooking(code: string, by: "guest" | "host" | "admin"
 
 export async function listingOf(b: Booking): Promise<Listing | undefined> {
   return getListingById(b.listing_id);
+}
+
+/* ───────── Webhook idempotency & amount safety ───────── */
+
+/** True the first time an event id is seen; false for duplicates (INSERT OR IGNORE on the primary key). */
+export async function recordPaymentEvent(eventId: string, paymentId: string): Promise<boolean> {
+  const r = await db().prepare("INSERT OR IGNORE INTO payment_events (id, payment_id) VALUES (?, ?)").run(eventId.slice(0, 120), paymentId);
+  return r.changes > 0;
+}
+
+export async function hasPaymentEvent(eventId: string): Promise<boolean> {
+  return !!(await db().prepare("SELECT 1 FROM payment_events WHERE id = ?").get(eventId.slice(0, 120)));
+}
+
+/**
+ * Server-side amount check, run before a booking can become `confirmed`.
+ * The paid amount (halalas) must equal the payment record, the booking total, AND the total re-computed from the stored price breakdown.
+ */
+export async function amountMatchesBooking(paymentId: string, paidAmount: number, currency: string): Promise<boolean> {
+  const pay = await getPayment(paymentId);
+  if (!pay) return false;
+  const booking = await db().prepare("SELECT * FROM bookings WHERE id = ?").get<Booking>(pay.booking_id);
+  if (!booking) return false;
+  const expected = quoteTotal(quoteOf(booking));
+  return currency === "SAR" && paidAmount === expected && expected === booking.total && pay.amount === booking.total;
+}
+
+/** A payment arrived with the wrong amount: never confirm; hold it for a refund and flag the booking. */
+export async function flagAmountMismatch(paymentId: string, raw: unknown) {
+  const now = nowIso();
+  await db().batch([
+    db().prepare("UPDATE bookings SET status = 'payment_conflict', hold_expires_at = NULL, updated_at = ? WHERE status = 'pending_payment' AND id = (SELECT booking_id FROM payments WHERE id = ?)").bind(now, paymentId),
+    db().prepare("UPDATE payments SET status = 'refund_pending', raw = ?, updated_at = ? WHERE id = ? AND status = 'initiated'").bind(JSON.stringify(raw ?? null), now, paymentId),
+  ]);
 }

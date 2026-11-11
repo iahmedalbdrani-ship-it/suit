@@ -64,7 +64,9 @@ CREATE TABLE IF NOT EXISTS listings (
   house_rules_ar TEXT NOT NULL DEFAULT '',
   house_rules_en TEXT NOT NULL DEFAULT '',
   featured INTEGER NOT NULL DEFAULT 0,
-  property_type TEXT NOT NULL DEFAULT 'apartment' CHECK (property_type IN ('apartment','studio')),
+  property_type TEXT NOT NULL DEFAULT 'apartment',
+  unit_type TEXT NOT NULL DEFAULT 'apartment',
+  paused INTEGER NOT NULL DEFAULT 0,
   is_demo INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
@@ -146,6 +148,12 @@ CREATE TABLE IF NOT EXISTS reviews (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 CREATE INDEX IF NOT EXISTS reviews_listing ON reviews(listing_id);
+
+CREATE TABLE IF NOT EXISTS payment_events (
+  id TEXT PRIMARY KEY,
+  payment_id TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
 
 CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

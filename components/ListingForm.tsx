@@ -1,7 +1,9 @@
 import { saveListingAction } from "@/app/actions/host";
 import { SubmitButton } from "./SubmitButton";
 import { Icon } from "./Icon";
-import { AMENITIES, type City, type Listing } from "@/lib/data/listings";
+import { AMENITIES, PROPERTY_TYPES, type City, type Listing } from "@/lib/data/listings";
+import { PhotoUploader } from "./PhotoUploader";
+import { photoLabels, typeLabel } from "@/lib/photo-labels";
 import type { Dict, Locale } from "@/lib/i18n";
 import { sar } from "@/lib/format";
 
@@ -12,7 +14,7 @@ export function ListingForm({ locale, t, cities, listing }: { locale: Locale; t:
   const money = (k: "base_price" | "weekend_price" | "cleaning_fee") => (listing && listing[k] != null ? sar(listing[k] as number) : "");
 
   return (
-    <form action={saveListingAction} className="stack">
+    <form action={saveListingAction} className="stack" encType="multipart/form-data">
       <input type="hidden" name="locale" value={locale} />
       {listing && <input type="hidden" name="id" value={listing.id} />}
 
@@ -48,9 +50,8 @@ export function ListingForm({ locale, t, cities, listing }: { locale: Locale; t:
         <h2 style={{ fontSize: "1.15rem", margin: 0 }}>{h.sectionDetails}</h2>
         <label className="field" style={{ maxWidth: 240 }}>
           <span>{h.propertyType}</span>
-          <select className="select" name="property_type" defaultValue={v("property_type") || "apartment"}>
-            <option value="apartment">{t.listing.typeApartment}</option>
-            <option value="studio">{t.listing.typeStudio}</option>
+          <select className="select" name="unit_type" defaultValue={v("unit_type") || "apartment"}>
+            {PROPERTY_TYPES.map((p) => <option key={p} value={p}>{typeLabel(t, p)}</option>)}
           </select>
         </label>
         <div className="grid-4">
@@ -104,6 +105,13 @@ export function ListingForm({ locale, t, cities, listing }: { locale: Locale; t:
           <label className="field"><span>{h.rulesEn}</span><textarea className="textarea" name="house_rules_en" rows={4} dir="ltr" defaultValue={v("house_rules_en")} /></label>
         </div>
       </fieldset>
+
+      {!listing && (
+        <fieldset className="card card-pad stack">
+          <h2 style={{ fontSize: "1.15rem", margin: 0 }}>{h.sectionPhotos}</h2>
+          <PhotoUploader labels={photoLabels(t)} />
+        </fieldset>
+      )}
 
       <div><SubmitButton className="btn btn-lg">{listing ? h.save : h.create}</SubmitButton></div>
     </form>

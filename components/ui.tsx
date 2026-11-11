@@ -1,3 +1,4 @@
+import { config } from "@/lib/config";
 import Link from "next/link";
 import { Icon } from "./Icon";
 import { money, rating as fmtRating } from "@/lib/format";
@@ -43,13 +44,13 @@ export function ListingCard({ item, locale, t, query = "", index = 0 }: { item: 
   const title = locale === "ar" ? item.title_ar : item.title_en;
   const city = locale === "ar" ? item.city_ar : item.city_en;
   const district = locale === "ar" ? item.district_ar : item.district_en;
-  const rooms = item.property_type === "studio" || item.bedrooms === 0 ? (locale === "ar" ? "استوديو" : "Studio") : item.bedrooms === 1 ? t.listing.bedroom1 : fmt(t.listing.bedrooms, { n: item.bedrooms });
+  const rooms = item.unit_type === "studio" || item.bedrooms === 0 ? (locale === "ar" ? "استوديو" : "Studio") : item.bedrooms === 1 ? t.listing.bedroom1 : fmt(t.listing.bedrooms, { n: item.bedrooms });
   return (
     <Link href={`/${locale}/apartments/${item.slug}${query}`} className="lcard" style={{ ["--i" as string]: index }}>
       <div className="lcard-media">
         {item.cover && <img src={item.cover} alt={title} width={800} height={600} loading="lazy" decoding="async" />}
-        {item.is_demo ? <span className="badge badge-dark">{t.demo.data}</span> : null}
-        {item.is_demo ? <span className="photo-note">{t.demo.illustration}</span> : null}
+        {item.is_demo && config.demoMode ? <span className="badge badge-dark">{t.demo.data}</span> : null}
+        {item.is_demo && config.demoMode ? <span className="photo-note">{t.demo.illustration}</span> : null}
       </div>
       <div className="lcard-body">
         <div className="spread">

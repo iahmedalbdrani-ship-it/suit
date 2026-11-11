@@ -7,6 +7,7 @@ import { fmt, getDict, resolveLocale, type Dict, type Locale } from "@/lib/i18n"
 import { AMENITIES, PROPERTY_TYPES, getCities, getCity, searchListings, type SearchParams } from "@/lib/data/listings";
 import { todayInRiyadh } from "@/lib/dates";
 import { pageMeta } from "@/lib/seo";
+import { typeLabel } from "@/lib/photo-labels";
 
 type SP = Record<string, string | string[] | undefined>;
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<SP> };
@@ -42,7 +43,7 @@ function Filters({ sp, t, locale, idp }: { sp: SP; t: Dict; locale: Locale; idp:
           {["", ...PROPERTY_TYPES].map((v) => (
             <label className="chip-input" key={v}>
               <input type="radio" name="type" value={v} defaultChecked={one(sp.type) === v} />
-              <span>{v === "" ? t.results.typeAny : v === "studio" ? t.listing.typeStudio : t.listing.typeApartment}</span>
+              <span>{v === "" ? t.results.typeAny : typeLabel(t, v)}</span>
             </label>
           ))}
         </div>

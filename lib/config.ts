@@ -10,7 +10,8 @@ const env = (k: string) => process.env[k];
 /** Getters, not constants: on Cloudflare Workers env vars are only populated per request, not at module load. */
 export const config = {
   get siteUrl() { return (env("SITE_URL") || "http://localhost:3000").replace(/\/$/, ""); },
-  get demoMode() { return env("DEMO_MODE") !== "false"; },
+  /** NEXT_PUBLIC_DEMO_MODE controls the demo banner and "demo data" tags; falls back to DEMO_MODE. "false" = production. */
+  get demoMode() { return (env("NEXT_PUBLIC_DEMO_MODE") ?? env("DEMO_MODE")) !== "false"; },
   get seedDemoData() { return env("SEED_DEMO_DATA") !== "false"; },
   get databasePath() { return env("DATABASE_PATH") || "./data/suitly.db"; },
   get uploadsDir() { return env("UPLOADS_DIR") || "./data/uploads"; },
@@ -19,6 +20,7 @@ export const config = {
   get holdMinutes() { return num(env("BOOKING_HOLD_MINUTES"), 15); },
   get paymentProvider() { return (env("PAYMENT_PROVIDER") || "demo") as "demo" | "moyasar"; },
   get moyasarSecretKey() { return env("MOYASAR_SECRET_KEY") || ""; },
+  get moyasarWebhookSecret() { return env("MOYASAR_WEBHOOK_SECRET") || ""; },
   get adminEmail() { return env("ADMIN_EMAIL") || ""; },
   get adminPassword() { return env("ADMIN_PASSWORD") || ""; },
   get contactEmail() { return env("CONTACT_EMAIL") || ""; },

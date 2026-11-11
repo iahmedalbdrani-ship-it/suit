@@ -75,6 +75,11 @@ export function computeQuote(
   };
 }
 
+/** Independent re-computation of a stored quote's total (halalas) from its components. */
+export function quoteTotal(q: Pick<Quote, "nightsTotal" | "discount" | "cleaningFee" | "serviceFee" | "vat">): number {
+  return q.nightsTotal - q.discount + q.cleaningFee + q.serviceFee + q.vat;
+}
+
 export type CancellationPolicy = "flexible" | "moderate" | "strict";
 
 /** Refund (halalas) for a guest cancellation, per Suitly policy. Check-in is at 15:00 Riyadh time by default. */

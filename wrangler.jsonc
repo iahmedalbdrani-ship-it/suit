@@ -19,6 +19,7 @@
   "vars": {
     "SITE_URL": "https://suitly.online",
     "DEMO_MODE": "true",
+    "NEXT_PUBLIC_DEMO_MODE": "true",
     "PAYMENT_PROVIDER": "demo",
     "SERVICE_FEE_RATE": "0",
     "VAT_RATE": "0",

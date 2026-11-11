@@ -97,3 +97,24 @@ export async function guestCancelAction(fd: FormData) {
   if (res!.paymentId && res!.refund > 0) await refundPayment(res!.paymentId, res!.refund);
   redirect(`/${locale}/account${qs({ tab: "cancelled", ok: "cancelled" })}`);
 }
+
+/** Guest review: only the guest of a confirmed booking, only after the stay has ended, once per booking. */
+export async function submitReviewAction(fd: FormData) {
+  const locale = loc(fd);
+  const user = await getCurrentUser();
+  const code = s(fd, "code", 20);
+  if (!user) redirect(`/${locale}/login`);
+  const b = await getBookingByCode(code);
+  const back = (q: string) => redirect(`/${locale}/bookings/${code}${q}#review`);
+  if (!b || b.guest_id !== user!.id) redirect(`/${locale}`);
+  if (b!.status !== "confirmed" || b!.check_out > todayInRiyadh()) back("?error=review_not_allowed");
+  const rating = Math.trunc(Number(s(fd, "rating", 2)));
+  const comment = s(fd, "comment", 1000);
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5 || comment.length < 5) back("?error=review_invalid");
+  const author = user!.name.trim().split(/\s+/)[0] || "Guest";
+  // booking_id is UNIQUE: a second submit inserts nothing.
+  const r = await db().prepare(`INSERT INTO reviews (listing_id, booking_id, author_name, rating, comment, lang)
+    SELECT ?, ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM reviews WHERE booking_id = ?)`)
+    .run(b!.listing_id, b!.id, author, rating, comment, locale, b!.id);
+  back(r.changes ? "?ok=review_saved" : "?error=review_exists");
+}

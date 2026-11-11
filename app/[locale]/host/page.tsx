@@ -4,7 +4,7 @@ import { getDict, resolveLocale } from "@/lib/i18n";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { bookingsForHost } from "@/lib/data/bookings";
-import { hostCancelAction } from "@/app/actions/host";
+import { hostCancelAction, togglePauseAction } from "@/app/actions/host";
 import { Alert, EmptyState, StatusBadge, errorText } from "@/components/ui";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Icon } from "@/components/Icon";
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return pageMeta(locale, "/host", getDict(locale).host.title, undefined, { noindex: true });
 }
 
-type Row = { id: number; slug: string; title_ar: string; title_en: string; status: string; base_price: number; review_note: string | null; cover: string | null; city_ar: string; city_en: string };
+type Row = { id: number; slug: string; title_ar: string; title_en: string; status: string; paused: number; base_price: number; review_note: string | null; cover: string | null; city_ar: string; city_en: string };
 
 export default async function HostPage({ params, searchParams }: Props) {
   const locale = resolveLocale((await params).locale);
@@ -27,7 +27,7 @@ export default async function HostPage({ params, searchParams }: Props) {
   const t = getDict(locale);
   const user = await requireRole(locale, ["host", "admin"], `/${locale}/host`);
   const tab = ["overview", "listings", "bookings"].includes(sp.tab ?? "") ? sp.tab! : "overview";
-  const listings = await db().prepare(`SELECT l.id, l.slug, l.title_ar, l.title_en, l.status, l.base_price, l.review_note, c.name_ar AS city_ar, c.name_en AS city_en,
+  const listings = await db().prepare(`SELECT l.id, l.slug, l.title_ar, l.title_en, l.status, l.paused, l.base_price, l.review_note, c.name_ar AS city_ar, c.name_en AS city_en,
     (SELECT url FROM photos p WHERE p.listing_id = l.id ORDER BY p.sort, p.id LIMIT 1) AS cover
     FROM listings l JOIN cities c ON c.slug = l.city_slug WHERE l.host_id = ? ORDER BY l.created_at DESC`).all(user.id) as Row[];
   const bookings = await bookingsForHost(user.id);
@@ -98,6 +98,7 @@ export default async function HostPage({ params, searchParams }: Props) {
         </>
       )}
 
+      {(sp.ok === "paused" || sp.ok === "unpaused") && <div style={{ marginBottom: "1rem" }}><Alert kind="ok">{sp.ok === "paused" ? t.host.pausedOk : t.host.unpausedOk}</Alert></div>}
       {tab === "listings" && (listings.length ? (
         <div className="table-wrap">
           <table className="table">
@@ -109,10 +110,14 @@ export default async function HostPage({ params, searchParams }: Props) {
                   <td><strong>{T(l)}</strong>{l.review_note && <div className="xs" style={{ color: "var(--danger)" }}>{t.host.reviewNote}: {l.review_note}</div>}</td>
                   <td>{locale === "ar" ? l.city_ar : l.city_en}</td>
                   <td className="num">{money(l.base_price, locale)}</td>
-                  <td><StatusBadge status={l.status} t={t} /></td>
+                  <td><StatusBadge status={l.status} t={t} />{l.paused ? <> <span className="badge badge-paused">{t.host.pausedBadge}</span></> : null}</td>
                   <td><div className="row">
                     <Link className="btn btn-outline btn-sm" href={`/${locale}/host/listings/${l.id}`}>{t.host.edit}</Link>
                     <Link className="btn btn-ghost btn-sm" href={`/${locale}/apartments/${l.slug}`}>{t.host.view}</Link>
+                    <form action={togglePauseAction}>
+                      <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={l.id} /><input type="hidden" name="back" value="list" />
+                      <SubmitButton className="btn btn-outline btn-sm">{l.paused ? t.host.unpause : t.host.pause}</SubmitButton>
+                    </form>
                   </div></td>
                 </tr>
               ))}

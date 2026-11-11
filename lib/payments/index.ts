@@ -1,8 +1,9 @@
 import "server-only";
 import { config } from "../config";
 import type { Locale } from "../i18n/config";
+import { signCallback } from "./webhook";
 import {
-  createPaymentRecord, getPayment, markPaymentFailed, markPaymentPaid, updatePayment,
+  amountMatchesBooking, createPaymentRecord, flagAmountMismatch, getPayment, markPaymentFailed, markPaymentPaid, updatePayment,
   type Booking, type BookingStatus, type Payment,
 } from "../data/bookings";
 
@@ -28,7 +29,7 @@ export function activeProvider(): "demo" | "moyasar" {
 
 export async function startPayment(booking: Booking, locale: Locale): Promise<StartResult> {
   const provider = activeProvider();
-  if (config.paymentProvider === "moyasar" && provider !== "moyasar") return { ok: false, reason: "unavailable" };
+  if (config.paymentProvider === "moyasar" && (provider !== "moyasar" || !config.moyasarWebhookSecret)) return { ok: false, reason: "unavailable" };
   const payment = await createPaymentRecord(booking.id, provider, booking.total);
 
   if (provider === "demo") {
@@ -38,6 +39,7 @@ export async function startPayment(booking: Booking, locale: Locale): Promise<St
   }
 
   try {
+    const sig = await signCallback(config.moyasarWebhookSecret, payment.id);
     const res = await fetch(`${MOYASAR_API}/invoices`, {
       method: "POST",
       headers: { Authorization: moyasarAuth(), "Content-Type": "application/json" },
@@ -45,7 +47,7 @@ export async function startPayment(booking: Booking, locale: Locale): Promise<St
         amount: booking.total,
         currency: "SAR",
         description: `Suitly booking ${booking.code}`,
-        callback_url: `${config.siteUrl}/api/payments/moyasar/webhook?pid=${payment.id}`,
+        callback_url: `${config.siteUrl}/api/payments/moyasar/webhook?pid=${payment.id}&sig=${sig}`,
         success_url: `${config.siteUrl}/api/payments/moyasar/return?pid=${payment.id}&locale=${locale}`,
         back_url: `${config.siteUrl}/${locale}/bookings/${booking.code}`,
         expired_at: booking.hold_expires_at ?? undefined,
@@ -64,7 +66,7 @@ export async function startPayment(booking: Booking, locale: Locale): Promise<St
   }
 }
 
-type MoyasarInvoice = { id: string; status: string; amount: number; currency: string; payments?: { id: string; status: string }[] };
+type MoyasarInvoice = { id: string; status: string; amount: number; currency: string; payments?: { id: string; status: string; amount?: number }[] };
 
 /** Re-fetch the invoice from Moyasar and apply the verified result. Safe to call many times. */
 export async function verifyMoyasarPayment(paymentId: string): Promise<BookingStatus | "pending" | null> {
@@ -77,8 +79,16 @@ export async function verifyMoyasarPayment(paymentId: string): Promise<BookingSt
   });
   if (!res.ok) return "pending";
   const inv = (await res.json()) as MoyasarInvoice;
-  if (inv.status === "paid" && inv.amount === pay.amount && inv.currency === "SAR") {
+  if (inv.status === "paid") {
     const paid = inv.payments?.find((p) => p.status === "paid");
+    // Never confirm unless every amount we can see equals the server-computed total.
+    const amounts = [inv.amount, ...(paid?.amount != null ? [paid.amount] : [])];
+    const ok = (await Promise.all(amounts.map((a) => amountMatchesBooking(pay.id, a, inv.currency)))).every(Boolean);
+    if (!ok) {
+      console.error("[payments] amount mismatch", pay.id, amounts);
+      await flagAmountMismatch(pay.id, inv);
+      return "payment_conflict";
+    }
     return markPaymentPaid(pay.id, paid?.id ?? null, inv);
   }
   if (inv.status === "expired" || inv.status === "canceled") {
