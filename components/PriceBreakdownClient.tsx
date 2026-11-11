@@ -2,7 +2,7 @@ import type { Quote } from "@/lib/pricing";
 import type { Dict } from "@/lib/i18n/ar";
 import { money } from "@/lib/format";
 
-const f = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ""));
+import { fmt as f } from "@/lib/i18n/config";
 
 /** Same breakdown as the server version, usable inside client components. */
 export function PriceBreakdownClient({ q, locale, t }: { q: Quote; locale: "ar" | "en"; t: Dict["widget"] }) {

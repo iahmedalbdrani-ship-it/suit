@@ -168,11 +168,11 @@ export default async function ApartmentPage({ params, searchParams }: Props) {
                       <header>
                         <div className="avatar" aria-hidden="true">{r.author_name.slice(0, 1)}</div>
                         <div>
-                          <strong>{r.author_name}</strong>
+                          <strong>{r.author_name}</strong>{r.lang && r.lang !== locale ? <span className="review-lang" lang={locale}>{t.listing.originalLang}</span> : null}
                           <div className="muted xs">{date(r.created_at, locale, { month: "long", year: "numeric" })} · {"★".repeat(r.rating)}<span className="sr-only">{r.rating}/5</span></div>
                         </div>
                       </header>
-                      <p>{r.comment}</p>
+                      <p dir={r.lang === "ar" ? "rtl" : "ltr"} style={{ textAlign: "start" }}>{r.comment}</p>
                     </article>
                   ))}
                 </div>

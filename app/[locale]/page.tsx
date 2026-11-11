@@ -120,9 +120,10 @@ export default async function Home({ params, searchParams }: Props) {
               <div className="receipt" aria-label={t.widget.priceDetails}>
                 <div><span>{fmt(t.widget.nightsX, { price: money(sampleQ.avgNightly, locale), n: sampleQ.nights })}</span><span className="num">{money(sampleQ.nightsTotal, locale)}</span></div>
                 <div><span>{t.widget.cleaning}</span><span className="num">{money(sampleQ.cleaningFee, locale)}</span></div>
-                <div><span>{t.widget.service}</span><span className="num">{money(sampleQ.serviceFee, locale)}</span></div>
-                <div><span>{fmt(t.widget.vat, { rate: Math.round(sampleQ.vatRate * 100) })}</span><span className="num">{money(sampleQ.vat, locale)}</span></div>
+                {sampleQ.serviceFee > 0 && <div><span>{t.widget.service}</span><span className="num">{money(sampleQ.serviceFee, locale)}</span></div>}
+                {sampleQ.vat > 0 && <div><span>{fmt(t.widget.vat, { rate: Math.round(sampleQ.vatRate * 100) })}</span><span className="num">{money(sampleQ.vat, locale)}</span></div>}
                 <div className="t"><span>{t.widget.total}</span><span className="num">{money(sampleQ.total, locale)}</span></div>
+                <p className="muted xs" style={{ margin: ".5rem 0 0" }}>{t.home.sampleNote}</p>
               </div>
             )}
           </article>
