@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE COLLATE NOCASE,
   phone TEXT,
+  phone_e164 TEXT,
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'guest' CHECK (role IN ('guest','host','admin')),
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
@@ -148,6 +149,20 @@ CREATE TABLE IF NOT EXISTS reviews (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 CREATE INDEX IF NOT EXISTS reviews_listing ON reviews(listing_id);
+
+CREATE TABLE IF NOT EXISTS phone_otps (
+  id TEXT PRIMARY KEY,
+  phone_e164 TEXT NOT NULL,
+  code_hash TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  resend_at TEXT NOT NULL,
+  sends INTEGER NOT NULL DEFAULT 1,
+  consumed_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS rate_events (key TEXT NOT NULL, at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS rate_events_key ON rate_events(key, at);
 
 CREATE TABLE IF NOT EXISTS payment_events (
   id TEXT PRIMARY KEY,

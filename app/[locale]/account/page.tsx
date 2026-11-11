@@ -12,6 +12,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { dateRange, money } from "@/lib/format";
 import { pageMeta } from "@/lib/seo";
 import { todayInRiyadh } from "@/lib/dates";
+import { isPhoneAccountEmail, PHONE_GUEST_NAME } from "@/lib/phone";
 
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -40,8 +41,8 @@ export default async function AccountPage({ params, searchParams }: Props) {
   return (
     <div className="container" style={{ paddingBottom: "3rem" }}>
       <div className="dash-head">
-        <h1 style={{ fontSize: "1.8rem", margin: 0 }}>{fmt(t.account.hello, { name: user.name.split(" ")[0] })}</h1>
-        <p className="muted" style={{ margin: 0 }} dir="ltr">{user.email}</p>
+        <h1 style={{ fontSize: "1.8rem", margin: 0 }}>{user.name === PHONE_GUEST_NAME ? t.account.helloGeneric : fmt(t.account.hello, { name: user.name.split(" ")[0] })}</h1>
+        <p className="muted" style={{ margin: 0 }} dir="ltr">{isPhoneAccountEmail(user.email) ? user.phone : user.email}</p>
       </div>
       <nav className="tabs" aria-label={t.account.title}>
         {tabs.map(([k, label]) => (
@@ -57,7 +58,7 @@ export default async function AccountPage({ params, searchParams }: Props) {
         <form action={profileAction} className="card card-pad stack" style={{ maxWidth: 520 }}>
           <input type="hidden" name="locale" value={locale} />
           <label className="field"><span>{t.auth.name}</span><input className="input" name="name" required defaultValue={user.name} maxLength={80} /></label>
-          <label className="field"><span>{t.auth.email}</span><input className="input" value={user.email} disabled dir="ltr" /></label>
+          <label className="field"><span>{t.auth.email}</span><input className="input" value={isPhoneAccountEmail(user.email) ? (user.phone ?? "") : user.email} disabled dir="ltr" /></label>
           <label className="field"><span>{t.checkout.phone}</span><input className="input" name="phone" type="tel" dir="ltr" defaultValue={user.phone ?? ""} /></label>
           <div><SubmitButton>{t.account.save}</SubmitButton></div>
         </form>

@@ -550,3 +550,15 @@ a, button, summary, label.chip-input, .cal-day, select, input[type="checkbox"], 
 .photo-grid figcaption .btn { min-height: 44px; min-width: 44px; }
 .badge-paused { background: #fdecd6; color: var(--green-900); }
 @media (prefers-reduced-motion: reduce) { .dropzone { transition: none; } }
+
+/* Phone sign-in */
+.phone-field { display: flex; align-items: stretch; gap: 0; }
+.phone-field .input { border-start-start-radius: 0; border-end-start-radius: 0; flex: 1; min-width: 0; font-size: 1.1rem; letter-spacing: .04em; }
+.phone-cc { display: inline-flex; align-items: center; padding-inline: .9rem; border: 1.5px solid var(--line); border-inline-end: 0; border-start-start-radius: 12px; border-end-start-radius: 12px; background: var(--sand-100); color: var(--ink-2); font-weight: 600; }
+.otp-input { font-size: 1.6rem; letter-spacing: .5em; text-align: center; padding-block: .8rem; }
+.otp-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.otp-actions .btn { min-height: 44px; }
+.linklike { background: none; border: 0; padding: .5rem 0; color: var(--green); text-decoration: underline; cursor: pointer; font: inherit; min-height: 44px; }
+.hp-field { position: absolute; inset-inline-start: -9999px; width: 1px; height: 1px; opacity: 0; }
+.auth-divider { display: flex; align-items: center; gap: .75rem; color: var(--ink-3); font-size: .85rem; }
+.auth-divider::before, .auth-divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }

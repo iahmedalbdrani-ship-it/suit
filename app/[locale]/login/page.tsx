@@ -9,6 +9,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { LogoMark } from "@/components/Logo";
 import { config, DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/config";
 import { pageMeta } from "@/lib/seo";
+import { smsConfigured } from "@/lib/sms";
 
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -33,6 +34,12 @@ export default async function LoginPage({ params, searchParams }: Props) {
           <p className="muted" style={{ margin: 0 }}>{t.auth.loginText}</p>
         </div>
         {sp.error && <Alert kind="error">{errorText(t, sp.error)}</Alert>}
+        {smsConfigured() && (
+          <>
+            <Link className="btn btn-lg btn-block" href={`/${locale}/phone?next=${encodeURIComponent(next)}`}>{t.phone.useMobile}</Link>
+            <div className="auth-divider" aria-hidden="true">{t.phone.or}</div>
+          </>
+        )}
         <form action={loginAction} className="stack">
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="next" value={next} />

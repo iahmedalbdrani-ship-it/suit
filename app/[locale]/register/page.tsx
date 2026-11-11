@@ -8,6 +8,7 @@ import { Alert, errorText } from "@/components/ui";
 import { SubmitButton } from "@/components/SubmitButton";
 import { LogoMark } from "@/components/Logo";
 import { pageMeta } from "@/lib/seo";
+import { smsConfigured } from "@/lib/sms";
 
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -32,6 +33,12 @@ export default async function RegisterPage({ params, searchParams }: Props) {
           <p className="muted" style={{ margin: 0 }}>{t.auth.registerText}</p>
         </div>
         {sp.error && <Alert kind="error">{errorText(t, sp.error)}</Alert>}
+        {smsConfigured() && (
+          <>
+            <Link className="btn btn-lg btn-block" href={`/${locale}/phone?next=${encodeURIComponent(next)}`}>{t.phone.useMobile}</Link>
+            <div className="auth-divider" aria-hidden="true">{t.phone.or}</div>
+          </>
+        )}
         <form action={registerAction} className="stack">
           <input type="hidden" name="locale" value={locale} />
           {next && <input type="hidden" name="next" value={next} />}

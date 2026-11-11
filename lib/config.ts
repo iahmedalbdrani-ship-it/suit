@@ -25,6 +25,16 @@ export const config = {
   get adminPassword() { return env("ADMIN_PASSWORD") || ""; },
   get contactEmail() { return env("CONTACT_EMAIL") || ""; },
   get contactWhatsapp() { return env("CONTACT_WHATSAPP") || ""; },
+  /** Phone sign-in. SMS_PROVIDER: "twilio" (production) or "mock" (local only, refused unless SITE_URL is localhost). */
+  get smsProvider() { return (env("SMS_PROVIDER") || "") as "" | "twilio" | "mock"; },
+  get twilioSid() { return env("TWILIO_ACCOUNT_SID") || ""; },
+  get twilioToken() { return env("TWILIO_AUTH_TOKEN") || ""; },
+  get twilioFrom() { return env("TWILIO_FROM") || ""; },
+  get twilioMessagingService() { return env("TWILIO_MESSAGING_SERVICE_SID") || ""; },
+  get otpSecret() { return env("OTP_SECRET") || ""; },
+  get otpGlobalHourlyLimit() { return num(env("OTP_GLOBAL_HOURLY_LIMIT"), 300); },
+  get turnstileSiteKey() { return env("TURNSTILE_SITE_KEY") || ""; },
+  get turnstileSecret() { return env("TURNSTILE_SECRET_KEY") || ""; },
   timeZone: "Asia/Riyadh",
   currency: "SAR",
 };

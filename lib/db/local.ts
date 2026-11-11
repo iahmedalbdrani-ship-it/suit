@@ -29,6 +29,10 @@ export function localBackend(path: string): Backend {
       .filter((x) => !(hasUnit && /unit_type/.test(x)));
     for (const st of mig) conn.exec(st);
   }
+  // Phone sign-in: add users.phone_e164 in place on older local databases, then its unique index.
+  const ucols = conn.prepare("PRAGMA table_info(users)").all() as { name: string }[];
+  if (!ucols.some((c) => c.name === "phone_e164")) conn.exec("ALTER TABLE users ADD COLUMN phone_e164 TEXT");
+  conn.exec("CREATE UNIQUE INDEX IF NOT EXISTS users_phone_e164 ON users(phone_e164) WHERE phone_e164 IS NOT NULL");
   const runOne = (sql: P, args: unknown[]): RunResult => {
     const r = conn.prepare(sql).run(...norm(args));
     return { changes: Number(r.changes), lastInsertRowid: Number(r.lastInsertRowid) };

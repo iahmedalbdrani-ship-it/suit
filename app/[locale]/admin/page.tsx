@@ -1,3 +1,4 @@
+import { isPhoneAccountEmail } from "@/lib/phone";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getDict, resolveLocale } from "@/lib/i18n";
@@ -157,7 +158,7 @@ export default async function AdminPage({ params, searchParams }: Props) {
       })())}
 
       {tab === "users" && (await (async () => {
-        const rows = await db().prepare("SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC LIMIT 500").all() as { id: number; name: string; email: string; role: "guest" | "host" | "admin"; created_at: string }[];
+        const rows = await db().prepare("SELECT id, name, email, phone, role, created_at FROM users ORDER BY created_at DESC LIMIT 500").all() as { id: number; name: string; email: string; phone: string | null; role: "guest" | "host" | "admin"; created_at: string }[];
         return (
           <div className="table-wrap">
             <table className="table">
@@ -166,7 +167,7 @@ export default async function AdminPage({ params, searchParams }: Props) {
                 {rows.map((u) => (
                   <tr key={u.id}>
                     <td>{u.name}</td>
-                    <td dir="ltr" className="small">{u.email}</td>
+                    <td dir="ltr" className="small">{isPhoneAccountEmail(u.email) ? u.phone : u.email}</td>
                     <td className="small">{date(u.created_at, locale)}</td>
                     <td>
                       {u.id === me.id ? <span className="badge badge-mint">{t.admin.roles[u.role]}</span> : (

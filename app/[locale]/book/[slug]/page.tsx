@@ -11,6 +11,8 @@ import { createBookingAction } from "@/app/actions/booking";
 import { dateRange } from "@/lib/format";
 import { pageMeta } from "@/lib/seo";
 import { config } from "@/lib/config";
+import { smsConfigured } from "@/lib/sms";
+import { PHONE_GUEST_NAME } from "@/lib/phone";
 
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -65,7 +67,8 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
               <h2 style={{ fontSize: "1.2rem" }}>{t.checkout.loginTitle}</h2>
               <p className="muted">{t.checkout.loginText}</p>
               <div className="row">
-                <Link className="btn" href={`/${locale}/login?next=${encodeURIComponent(self)}`}>{t.nav.login}</Link>
+                {smsConfigured() && <Link className="btn" href={`/${locale}/phone?next=${encodeURIComponent(self)}`}>{t.phone.useMobile}</Link>}
+                <Link className={smsConfigured() ? "btn btn-outline" : "btn"} href={`/${locale}/login?next=${encodeURIComponent(self)}`}>{t.nav.login}</Link>
                 <Link className="btn btn-outline" href={`/${locale}/register?next=${encodeURIComponent(self)}`}>{t.nav.register}</Link>
               </div>
             </div>
@@ -79,7 +82,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
               <h2 style={{ fontSize: "1.2rem", margin: 0 }}>{t.checkout.guestInfo}</h2>
               <div className="grid-2">
                 <label className="field"><span>{t.checkout.name}</span>
-                  <input className="input" name="name" required maxLength={80} autoComplete="name" defaultValue={user.name} />
+                  <input className="input" name="name" required maxLength={80} autoComplete="name" defaultValue={user.name === PHONE_GUEST_NAME ? "" : user.name} />
                 </label>
                 <label className="field"><span>{t.checkout.phone}</span>
                   <input className="input" name="phone" required type="tel" inputMode="tel" autoComplete="tel" dir="ltr" pattern="[+0-9 ]{9,16}" placeholder={t.checkout.phoneHint} defaultValue={user.phone ?? ""} />
